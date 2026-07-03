@@ -53,8 +53,6 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-bitrix}
       MYSQL_USER: ${MYSQL_USER:-bitrix}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-bitrix}
-    command:
-      - --defaults-extra-file=/etc/mysql/conf.d/bitrix.cnf
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
       interval: 5s

@@ -1,50 +1,107 @@
-# Bitrix Docker Environment
+# bitrix-docker-env
 
 Reusable local Docker environment for 1C-Bitrix CMS development and backup restore.
 
-The template is designed for the common workflow: clone repository, set a local domain, put a Bitrix backup into `www/`, open `restore.php`, and restore the site in a ready PHP/MySQL/nginx environment.
+Clone the repository, set a local domain, put a Bitrix backup into `www/`, run `make up` and `make restore`, then complete restoration in the browser via the official `restore.php` wizard.
+
+**Author:** Andrej Spinej  
+**License:** [MIT](LICENSE)
 
 ## Stack
 
-- PHP-FPM 8.3, configurable with `PHP_VERSION`.
-- MySQL `8.0.36`, pinned for reproducibility.
-- nginx with HTTPS and dynamic domain configuration.
-- Local SSL certificates generated with `mkcert`.
-- Docker Compose with healthchecks.
+- PHP-FPM 8.3, configurable with `PHP_VERSION`
+- MySQL `8.0.36`, pinned for reproducibility
+- nginx with HTTPS and dynamic domain configuration
+- Local SSL certificates generated with `mkcert`
+- Docker Compose with healthchecks
+
+## Project Structure
+
+```text
+bitrix-docker-env/
+├── .env.example              # Environment template (copy to .env)
+├── .gitattributes            # LF line endings for shell scripts
+├── .gitignore                # PHP + Docker + Bitrix exclusions
+├── LICENSE                   # MIT License
+├── Makefile                  # Short commands: up, restore, cert, …
+├── README.md
+├── compose.yaml              # nginx, php-fpm, mysql services
+├── docker/
+│   ├── nginx/
+│   │   ├── certs/            # mkcert certificates (gitignored)
+│   │   └── templates/        # nginx envsubst templates
+│   ├── php/
+│   │   ├── Dockerfile
+│   │   ├── php.ini
+│   │   └── opcache.ini
+│   └── mysql/
+│       ├── initdb/           # Bitrix user bootstrap on first start
+│       └── my.cnf
+├── scripts/
+│   ├── doctor.sh             # Check Docker, mkcert, .env
+│   ├── init-domain.sh        # Generate SSL cert for DOMAIN
+│   ├── download-restore.sh   # Fetch official restore.php
+│   └── restore-check.sh      # Verify backup archive in www/
+└── www/                      # Bitrix site root (gitignored contents)
+    └── .gitkeep
+```
+
+Sensitive paths (`www/*`, `docker/nginx/certs/*`, `.env`) are excluded from Git so backups, site files, and private certificates never reach a public repository.
 
 ## Requirements
 
-- Docker Desktop or Docker Engine with Docker Compose v2.
-- Git Bash, WSL, macOS/Linux shell, or another shell that can run `bash`.
-- `make` for the short commands below.
-- `mkcert` for trusted local HTTPS certificates.
+- Docker Desktop or Docker Engine with Docker Compose v2
+- Git Bash, WSL, macOS/Linux shell, or another shell that can run `bash`
+- `make` for the short commands below
+- `mkcert` for trusted local HTTPS certificates
 
 On Windows, run shell scripts from Git Bash or WSL. If scripts fail with `bad interpreter`, check that Git did not convert line endings to CRLF. This repository includes `.gitattributes` to keep scripts as LF.
 
-## Quick Start
+## Environment Variables
+
+Copy the template and edit values for your machine:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and set your domain:
+| Variable | Default | Description |
+| --- | --- | --- |
+| `PROJECT_NAME` | `bitrix-local` | Docker Compose project and container name prefix |
+| `DOMAIN` | `bitrix.local` | Local HTTPS domain (must match hosts file) |
+| `HTTP_PORT` | `80` | Host port mapped to nginx HTTP |
+| `HTTPS_PORT` | `443` | Host port mapped to nginx HTTPS |
+| `TIMEZONE` | `Europe/Moscow` | PHP and MySQL timezone |
+| `PHP_VERSION` | `8.3` | PHP-FPM image tag (build arg) |
+| `UID` | `1000` | Linux/macOS user ID inside PHP container |
+| `GID` | `1000` | Linux/macOS group ID inside PHP container |
+| `XDEBUG_MODE` | `off` | Xdebug mode (`off`, `debug`, `develop`, …) |
+| `MYSQL_IMAGE` | `mysql:8.0.36` | Pinned MySQL image (do not bump without testing) |
+| `MYSQL_ROOT_PASSWORD` | `root` | MySQL root password |
+| `MYSQL_DATABASE` | `bitrix` | Database name for Bitrix |
+| `MYSQL_USER` | `bitrix` | Database user for Bitrix |
+| `MYSQL_PASSWORD` | `bitrix` | Database password for Bitrix |
+
+Example `.env` for a custom domain:
 
 ```dotenv
 DOMAIN=my-site.local
+MYSQL_PASSWORD=change-me
 ```
 
-For macOS/Linux, set your real UID/GID to avoid file permission issues:
+On macOS/Linux, set your real UID/GID to avoid file permission issues in `upload/` and `bitrix/cache/`:
 
 ```bash
-id -u
-id -g
+id -u   # put into UID=
+id -g   # put into GID=
 ```
 
-Then update `UID` and `GID` in `.env`.
-
-Run checks and start the environment:
+## Quick Start
 
 ```bash
+cp .env.example .env
+# edit DOMAIN and passwords in .env
+
 make init
 make up
 ```
@@ -59,7 +116,7 @@ https://my-site.local
 
 The environment uses the domain from `.env`.
 
-You must add the domain to your hosts file:
+Add the domain to your hosts file:
 
 ```text
 127.0.0.1 my-site.local
@@ -134,6 +191,8 @@ After restore, delete `restore.php` and backup archives from `www/`. The files a
 
 ```bash
 make doctor        # check required local tools and important config
+make init          # create .env from .env.example and run doctor
+make cert          # generate mkcert certificate for DOMAIN
 make up            # build and start containers
 make down          # stop containers
 make logs          # follow logs
@@ -167,3 +226,7 @@ The base image is kept small and predictable. Add Redis, Memcached, Sphinx, Elas
 - File permission issues on Linux/macOS: set `UID` and `GID` in `.env` to your real user values.
 - Shell scripts fail on Windows: ensure line endings are LF and run commands from Git Bash or WSL.
 - Browser does not trust the certificate: run `mkcert -install`, regenerate certificate, and restart nginx.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE) — free to use in private and commercial Bitrix projects without copyleft obligations.

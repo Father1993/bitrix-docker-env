@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check shell syntax
+        run: bash -n scripts/*.sh docker/mysql/initdb/*.sh
+
+      - name: Validate Compose config
+        run: docker compose config
+
+      - name: Build Docker images
+        run: docker compose build
