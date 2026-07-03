@@ -21,6 +21,8 @@ cert:
 
 up: cert
 	docker compose up -d --build --wait
+	@docker compose exec -T mysql mysql -uroot -p"$${MYSQL_ROOT_PASSWORD:-root}" -e \
+		"GRANT SESSION_VARIABLES_ADMIN ON *.* TO '$${MYSQL_USER:-bitrix}'@'%'; FLUSH PRIVILEGES;" 2>/dev/null || true
 	@echo "Ready: https://$(DOMAIN)"
 
 down:

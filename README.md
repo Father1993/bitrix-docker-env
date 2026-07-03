@@ -321,6 +321,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push and pull reque
 | Shell scripts fail on Windows | Use Git Bash or WSL; ensure LF line endings (`.gitattributes`) |
 | PHP extension missing | Add it to `PHP_EXTRA_EXTENSIONS` and run `docker compose build php` |
 | MySQL auth errors after image upgrade | Do not bump `MYSQL_IMAGE` without testing; use `make clean` only if you accept data loss |
+| `Access denied` for `SET innodb_strict_mode` | Run `make up` again (grants `SESSION_VARIABLES_ADMIN` to the Bitrix user) or grant manually as root |
 
 ## License
 
