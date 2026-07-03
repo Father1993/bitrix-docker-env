@@ -6,12 +6,26 @@ vendor/
 # Bitrix site data (must not be committed)
 www/*
 !www/.gitkeep
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.sql
+*.sql.gz
+restore.php
 
 # SSL certs generated locally
 docker/nginx/certs/*
 !docker/nginx/certs/.gitkeep
 
+# Local Docker data and generated files
+.docker/
+mysql-data/
+docker-compose.override.yml
+compose.override.yaml
+
 # OS/IDE
 .DS_Store
+Thumbs.db
 .idea/
 .vscode/

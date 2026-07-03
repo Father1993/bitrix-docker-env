@@ -1,0 +1,70 @@
+services:
+  nginx:
+    image: nginx:stable
+    container_name: ${PROJECT_NAME:-bitrix-local}-nginx
+    restart: unless-stopped
+    depends_on:
+      php:
+        condition: service_started
+    environment:
+      DOMAIN: ${DOMAIN:-bitrix.local}
+      NGINX_ENVSUBST_TEMPLATE_SUFFIX: .template
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx/conf.d
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./www:/var/www/html:ro
+      - ./docker/nginx/templates:/etc/nginx/templates:ro
+      - ./docker/nginx/certs:/etc/nginx/certs:ro
+
+  php:
+    build:
+      context: ./docker/php
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.3}
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: ${PROJECT_NAME:-bitrix-local}-php
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      TZ: ${TIMEZONE:-Europe/Moscow}
+      XDEBUG_MODE: ${XDEBUG_MODE:-off}
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-bitrix}
+      MYSQL_USER: ${MYSQL_USER:-bitrix}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-bitrix}
+    volumes:
+      - ./www:/var/www/html
+    working_dir: /var/www/html
+    expose:
+      - "9000"
+
+  mysql:
+    image: ${MYSQL_IMAGE:-mysql:8.0.36}
+    container_name: ${PROJECT_NAME:-bitrix-local}-mysql
+    restart: unless-stopped
+    environment:
+      TZ: ${TIMEZONE:-Europe/Moscow}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-bitrix}
+      MYSQL_USER: ${MYSQL_USER:-bitrix}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-bitrix}
+    command:
+      - --defaults-extra-file=/etc/mysql/conf.d/bitrix.cnf
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/bitrix.cnf:ro
+      - ./docker/mysql/initdb:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  mysql-data:
