@@ -258,7 +258,7 @@ PHP limits in `docker/php/php.ini` (oriented toward large Bitrix backups). Timez
 - `memory_limit = 512M`
 - `upload_max_filesize = 1024M`
 - `post_max_size = 1024M`
-- `max_execution_time = 300`
+- `max_execution_time = 3600`
 
 nginx in `docker/nginx/templates/default.conf.template`:
 
@@ -280,7 +280,7 @@ On first start with an empty volume, `docker/mysql/initdb/01-bitrix-user.sh`:
 - uses `mysql_native_password` when the plugin is available
 - falls back to the default MySQL authentication plugin otherwise
 
-`docker/mysql/my.cnf` sets `utf8mb4`, increased `max_allowed_packet`, and Bitrix-friendly InnoDB options.
+`docker/mysql/my.cnf` sets `utf8mb4` and a **dev-only** performance profile (fast bulk import, `innodb_flush_log_at_trx_commit=0`, `skip-log-bin`). Do not reuse these settings on production.
 
 ## Optional Extensions
 
@@ -316,7 +316,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push and pull reque
 | Domain does not open | Hosts file entry for `DOMAIN`; run `make doctor` |
 | SSL warning in browser | `mkcert -install`, then `make cert`, then `docker compose restart nginx` |
 | MySQL connection fails in restore wizard | Host must be `mysql`, not `localhost` |
-| `make restore` — no archive found | Put `.tar.gz`, `.zip`, or other supported archive into `./www/` |
+| Restore unpack is very slow or stalls | On Windows, keep the project inside WSL2 (`~/projects/...`), not on `C:\`. Then run `docker compose build php && docker compose restart` after config changes |
 | File permission issues on Linux/macOS | Set `UID` and `GID` in `.env` to output of `id -u` / `id -g` |
 | Shell scripts fail on Windows | Use Git Bash or WSL; ensure LF line endings (`.gitattributes`) |
 | PHP extension missing | Add it to `PHP_EXTRA_EXTENSIONS` and run `docker compose build php` |
