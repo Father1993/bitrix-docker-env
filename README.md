@@ -189,6 +189,14 @@ make cert
 docker compose restart nginx
 ```
 
+**WSL2 + Windows Chrome/Edge:** `make cert` installs the CA only inside Linux. Windows browsers use a separate trust store, so you may see `ERR_CERT_AUTHORITY_INVALID`. Fix once:
+
+```bash
+make cert-windows
+```
+
+Then restart the browser and open `https://your-domain.local` again.
+
 ## Restore a Bitrix Backup
 
 Full workflow:
@@ -236,6 +244,7 @@ After restore, delete `restore.php` and backup archives from `www/`. The files a
 make doctor         # check Docker, compose, mkcert, .env, hosts hint
 make init           # create .env from .env.example and run doctor
 make cert           # generate mkcert certificate for DOMAIN
+make cert-windows   # trust mkcert CA in Windows (WSL2 only)
 make up             # cert + build + start containers (--wait)
 make down           # stop containers
 make restart        # restart all containers
@@ -315,6 +324,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push and pull reque
 | Port 80 or 443 is busy | Change `HTTP_PORT` / `HTTPS_PORT` in `.env`, or stop the conflicting service |
 | Domain does not open | Hosts file entry for `DOMAIN`; run `make doctor` |
 | SSL warning in browser | `mkcert -install`, then `make cert`, then `docker compose restart nginx` |
+| `ERR_CERT_AUTHORITY_INVALID` on WSL2 | Run `make cert-windows` once, then restart Chrome/Edge |
 | MySQL connection fails in restore wizard | Host must be `mysql`, not `localhost` |
 | Restore unpack is very slow or stalls | On Windows, keep the project inside WSL2 (`~/projects/...`), not on `C:\`. Then run `docker compose build php && docker compose restart` after config changes |
 | File permission issues on Linux/macOS | Set `UID` and `GID` in `.env` to output of `id -u` / `id -g` |

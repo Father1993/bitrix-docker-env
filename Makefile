@@ -7,7 +7,7 @@ endif
 
 DOMAIN ?= bitrix.local
 
-.PHONY: init doctor cert up down restart logs shell mysql restore restore-check config build clean
+.PHONY: init doctor cert cert-windows up down restart logs shell mysql restore restore-check config build clean
 
 init:
 	@if [ ! -f .env ]; then cp .env.example .env && echo "Created .env from .env.example"; else echo ".env already exists"; fi
@@ -18,6 +18,9 @@ doctor:
 
 cert:
 	@bash scripts/init-domain.sh
+
+cert-windows:
+	@bash scripts/install-windows-ca.sh
 
 up: cert
 	docker compose up -d --build --wait

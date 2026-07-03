@@ -46,3 +46,9 @@ else
     echo "Linux/macOS hosts file:"
     echo "  /etc/hosts"
 fi
+
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    echo
+    echo "WSL detected: Windows browsers do not trust the Linux mkcert CA."
+    echo "Run once: make cert-windows"
+fi

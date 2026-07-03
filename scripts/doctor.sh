@@ -41,6 +41,10 @@ else
     echo "  Install mkcert: https://github.com/FiloSottile/mkcert"
 fi
 
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    echo "WSL detected: if Chrome shows ERR_CERT_AUTHORITY_INVALID, run: make cert-windows"
+fi
+
 if [ -f .env ]; then
     echo "OK: .env"
 else
