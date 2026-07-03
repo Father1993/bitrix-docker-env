@@ -4,7 +4,7 @@ set -euo pipefail
 if [ -f .env ]; then
     set -a
     # shellcheck disable=SC1091
-    . ./.env
+    source <(grep -vE '^(UID|GID)=' .env)
     set +a
 fi
 
@@ -73,5 +73,12 @@ case "$(uname -s 2>/dev/null || echo unknown)" in
         echo "  C:\\Windows\\System32\\drivers\\etc\\hosts"
         ;;
 esac
+
+PHP_EXTRA_EXTENSIONS="${PHP_EXTRA_EXTENSIONS:-}"
+XDEBUG_MODE="${XDEBUG_MODE:-off}"
+if [[ " ${PHP_EXTRA_EXTENSIONS} " == *" xdebug "* ]] && [ "$XDEBUG_MODE" = "off" ]; then
+    echo "Warning: xdebug is in PHP_EXTRA_EXTENSIONS but XDEBUG_MODE=off."
+    echo "  Set XDEBUG_MODE=debug in .env and rebuild: docker compose build php"
+fi
 
 exit "$STATUS"
