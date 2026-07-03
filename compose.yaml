@@ -1,11 +1,11 @@
 services:
   nginx:
-    image: nginx:stable
+    image: ${NGINX_IMAGE:-nginx:1.27.4-bookworm}
     container_name: ${PROJECT_NAME:-bitrix-local}-nginx
     restart: unless-stopped
     depends_on:
       php:
-        condition: service_started
+        condition: service_healthy
     environment:
       DOMAIN: ${DOMAIN:-bitrix.local}
       NGINX_ENVSUBST_TEMPLATE_SUFFIX: .template
@@ -43,6 +43,12 @@ services:
     working_dir: /var/www/html
     expose:
       - "9000"
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm -t || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   mysql:
     image: ${MYSQL_IMAGE:-mysql:8.0.36}

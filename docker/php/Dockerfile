@@ -20,7 +20,7 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
-    curl -fsSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions \
+    curl -fsSL https://github.com/mlocati/docker-php-extension-installer/releases/download/2.11.12/install-php-extensions \
         -o /usr/local/bin/install-php-extensions; \
     chmod +x /usr/local/bin/install-php-extensions; \
     IPE_GD_WITHOUTAVIF=1 install-php-extensions \
@@ -28,6 +28,7 @@ RUN set -eux; \
         exif \
         gd \
         intl \
+        mbstring \
         mysqli \
         pdo_mysql \
         soap \
@@ -44,5 +45,10 @@ RUN set -eux; \
 
 COPY php.ini /usr/local/etc/php/conf.d/99-bitrix.ini
 COPY opcache.ini /usr/local/etc/php/conf.d/99-opcache.ini
+COPY docker-entrypoint.sh /usr/local/bin/bitrix-entrypoint.sh
+RUN chmod +x /usr/local/bin/bitrix-entrypoint.sh
 
 WORKDIR /var/www/html
+
+ENTRYPOINT ["bitrix-entrypoint.sh"]
+CMD ["php-fpm"]

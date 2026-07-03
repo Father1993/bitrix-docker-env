@@ -13,13 +13,13 @@ Clone the repository, set a local domain, put a Bitrix backup into `www/`, run `
 | --- | --- | --- |
 | PHP-FPM | `php:8.3-fpm-bookworm` (build arg `PHP_VERSION`) | Custom image with Bitrix-oriented `php.ini` |
 | MySQL | `mysql:8.0.36` (pinned via `MYSQL_IMAGE`) | Named volume `mysql-data`, init script for Bitrix user |
-| nginx | `nginx:stable` | HTTPS, envsubst template, Bitrix URL rewrite |
+| nginx | `nginx:1.27.4-bookworm` (override via `NGINX_IMAGE`) | HTTPS, envsubst template, Bitrix URL rewrite |
 | SSL | [mkcert](https://github.com/FiloSottile/mkcert) | Certs in `docker/nginx/certs/` (gitignored) |
 | Orchestration | Docker Compose v2 | `compose.yaml`, healthchecks, `depends_on` conditions |
 
-**PHP extensions installed by default:** `bcmath`, `exif`, `gd`, `intl`, `mysqli`, `pdo_mysql`, `soap`, `zip`.
+**PHP extensions installed by default:** `bcmath`, `exif`, `gd`, `intl`, `mbstring`, `mysqli`, `pdo_mysql`, `soap`, `zip`.
 
-**Additional extensions** via `PHP_EXTRA_EXTENSIONS` in `.env` (space-separated). `.env.example` includes `mbstring` (required by Bitrix). You can add more, e.g. `mbstring imagick redis xdebug`.
+**Optional extensions** via `PHP_EXTRA_EXTENSIONS` in `.env` (space-separated), e.g. `imagick redis xdebug`.
 
 ## Project Structure
 
@@ -83,9 +83,10 @@ cp .env.example .env
 | `DOMAIN` | `bitrix.local` | Local HTTPS domain (must match hosts file and cert name) |
 | `HTTP_PORT` | `80` | Host port mapped to nginx HTTP |
 | `HTTPS_PORT` | `443` | Host port mapped to nginx HTTPS |
+| `NGINX_IMAGE` | `nginx:1.27.4-bookworm` | Pinned nginx image tag |
 | `TIMEZONE` | `Europe/Moscow` | PHP and MySQL timezone |
 | `PHP_VERSION` | `8.3` | PHP-FPM image tag (Docker build arg) |
-| `PHP_EXTRA_EXTENSIONS` | `mbstring` | Space-separated extra PHP extensions, e.g. `mbstring imagick redis xdebug` |
+| `PHP_EXTRA_EXTENSIONS` | _(empty)_ | Space-separated optional PHP extensions, e.g. `imagick redis xdebug` |
 | `UID` | `1000` | Linux/macOS user ID inside PHP container |
 | `GID` | `1000` | Linux/macOS group ID inside PHP container |
 | `XDEBUG_MODE` | `off` | Xdebug mode when `xdebug` is installed (`off`, `debug`, `develop`, …) |
@@ -100,7 +101,7 @@ Example `.env` for a custom domain with extra PHP extensions:
 ```dotenv
 DOMAIN=my-site.local
 MYSQL_PASSWORD=change-me
-PHP_EXTRA_EXTENSIONS=mbstring imagick redis xdebug
+PHP_EXTRA_EXTENSIONS=imagick redis xdebug
 XDEBUG_MODE=debug
 ```
 
@@ -252,7 +253,7 @@ make clean          # stop containers and remove Docker volumes
 
 ## PHP and nginx Defaults
 
-PHP limits in `docker/php/php.ini` (oriented toward large Bitrix backups):
+PHP limits in `docker/php/php.ini` (oriented toward large Bitrix backups). Timezone is set at container start from `TIMEZONE` in `.env` via `docker/php/docker-entrypoint.sh`.
 
 - `memory_limit = 512M`
 - `upload_max_filesize = 1024M`
@@ -286,7 +287,7 @@ On first start with an empty volume, `docker/mysql/initdb/01-bitrix-user.sh`:
 The base PHP image stays small. Enable extra extensions only when needed:
 
 ```dotenv
-PHP_EXTRA_EXTENSIONS=mbstring imagick redis xdebug
+PHP_EXTRA_EXTENSIONS=imagick redis xdebug
 XDEBUG_MODE=debug
 ```
 
