@@ -3,6 +3,7 @@ FROM php:${PHP_VERSION}-fpm-bookworm
 
 ARG UID=1000
 ARG GID=1000
+ARG PHP_EXTRA_EXTENSIONS=""
 
 RUN set -eux; \
     apt-get update; \
@@ -26,16 +27,12 @@ RUN set -eux; \
         bcmath \
         exif \
         gd \
-        imagick \
         intl \
-        mbstring \
         mysqli \
-        opcache \
         pdo_mysql \
-        redis \
         soap \
-        xdebug \
-        zip
+        zip \
+        ${PHP_EXTRA_EXTENSIONS}
 
 RUN set -eux; \
     groupadd --gid "${GID}" bitrix; \

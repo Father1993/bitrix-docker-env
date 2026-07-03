@@ -23,6 +23,7 @@ services:
       context: ./docker/php
       args:
         PHP_VERSION: ${PHP_VERSION:-8.3}
+        PHP_EXTRA_EXTENSIONS: ${PHP_EXTRA_EXTENSIONS:-}
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     container_name: ${PROJECT_NAME:-bitrix-local}-php

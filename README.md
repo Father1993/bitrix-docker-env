@@ -216,7 +216,20 @@ The MySQL init script creates the Bitrix database user and tries to use `mysql_n
 
 ## Optional Extensions
 
-The base image is kept small and predictable. Add Redis, Memcached, Sphinx, Elasticsearch, or Traefik later via `compose.override.yaml` or Docker Compose profiles when a specific project requires them.
+The base PHP image is kept small and predictable. Enable extra PHP extensions only when a specific project needs them:
+
+```dotenv
+PHP_EXTRA_EXTENSIONS=imagick redis xdebug
+XDEBUG_MODE=debug
+```
+
+Then rebuild:
+
+```bash
+docker compose build php
+```
+
+Add Redis, Memcached, Sphinx, Elasticsearch, or Traefik later via `compose.override.yaml` or Docker Compose profiles when a specific project requires them.
 
 ## Troubleshooting
 
