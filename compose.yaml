@@ -51,7 +51,10 @@ services:
       start_period: 10s
 
   mysql:
-    image: ${MYSQL_IMAGE:-mysql:8.0.36}
+    build:
+      context: ./docker/mysql
+      args:
+        MYSQL_IMAGE: ${MYSQL_IMAGE:-mysql:8.0.36}
     container_name: ${PROJECT_NAME:-bitrix-local}-mysql
     restart: unless-stopped
     environment:
@@ -68,7 +71,6 @@ services:
       start_period: 30s
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/bitrix.cnf:ro
       - ./docker/mysql/initdb:/docker-entrypoint-initdb.d:ro
 
 volumes:
