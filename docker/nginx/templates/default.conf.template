@@ -34,6 +34,12 @@ server {
         deny all;
     }
 
+    location ~* ^/(bitrix|local)/.*?/\.default/ {
+        try_files $uri $uri/ =404;
+        access_log off;
+        log_not_found off;
+    }
+
     location ~* /\.(?!well-known/) {
         deny all;
     }
